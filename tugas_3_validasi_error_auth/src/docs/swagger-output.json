@@ -1,0 +1,1373 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Review Kantin API",
+    "version": "1.0.0",
+    "description": ""
+  },
+  "host": "localhost:3000",
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ],
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "securityDefinitions": {
+    "bearerAuth": {
+      "type": "http",
+      "scheme": "bearer",
+      "bearerFormat": "JWT"
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RegisterInput"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Akun customer berhasil dibuat"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "409": {
+            "description": "Email sudah terdaftar"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AuthInput"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login berhasil",
+            "schema": {
+              "$ref": "#/definitions/LoginResponse"
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Kredensial tidak valid"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Informasi pengguna aktif"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/stalls/": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "integer"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar warung"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      },
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/StallInput"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Warung dibuat"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/stalls/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail warung"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Tidak ditemukan"
+          }
+        }
+      },
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/StallInput"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Warung ter-update"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Tidak ditemukan"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Warung terhapus"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Tidak ditemukan"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/stalls/{id}/menus": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar menu"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Tidak ditemukan"
+          }
+        }
+      }
+    },
+    "/api/v1/users/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Daftar pengguna (tanpa password hash)"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserInput"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Pengguna berhasil dibuat"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/v1/menu-items/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Daftar menu beserta data warung"
+          },
+          "204": {
+            "description": "No Content"
+          }
+        }
+      },
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MenuItemInput"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Menu berhasil dibuat beserta data warung"
+          },
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/menu-items/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail menu beserta data warung"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Menu tidak ditemukan"
+          }
+        }
+      },
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MenuItemUpdate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Menu berhasil diubah beserta data warung"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Menu atau warung tidak ditemukan"
+          }
+        }
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Menu berhasil dihapus"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Menu tidak ditemukan"
+          }
+        }
+      }
+    },
+    "/api/v1/reviews/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Daftar review beserta data user"
+          },
+          "204": {
+            "description": "No Content"
+          }
+        }
+      },
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ReviewInput"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Review berhasil dibuat beserta data user"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "409": {
+            "description": "User sudah memberi review untuk warung ini"
+          }
+        }
+      }
+    },
+    "/api/v1/reviews/{id}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Review berhasil dihapus"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Review tidak ditemukan"
+          }
+        }
+      }
+    },
+    "/api/v1/likes/": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LikeInput"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Like berhasil dibuat dan likeCount review diperbarui"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "409": {
+            "description": "User sudah menyukai review ini"
+          }
+        }
+      }
+    },
+    "/api/v1/likes/{id}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Like berhasil dihapus dan likeCount review diperbarui"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Like tidak ditemukan"
+          }
+        }
+      }
+    },
+    "/api/v1/flags/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Daftar flag beserta data pelapor dan review"
+          },
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/flags/{id}": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/FlagStatusUpdate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status flag berhasil diperbarui"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Flag tidak ditemukan"
+          }
+        }
+      }
+    },
+    "/api/v1/audit/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Daftar audit beserta identitas user"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AuditInput"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Audit log berhasil dibuat"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "User tidak ditemukan"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "AuthInput": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "example": "object"
+        },
+        "required": {
+          "type": "array",
+          "example": [
+            "email",
+            "password"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "format": {
+                  "type": "string",
+                  "example": "email"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "budi@example.com"
+                }
+              }
+            },
+            "password": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "minLength": {
+                  "type": "number",
+                  "example": 8
+                },
+                "maxLength": {
+                  "type": "number",
+                  "example": 72
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "RegisterInput": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "example": "object"
+        },
+        "required": {
+          "type": "array",
+          "example": [
+            "name",
+            "email",
+            "password"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "minLength": {
+                  "type": "number",
+                  "example": 3
+                },
+                "maxLength": {
+                  "type": "number",
+                  "example": 100
+                }
+              }
+            },
+            "email": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "format": {
+                  "type": "string",
+                  "example": "email"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "budi@example.com"
+                }
+              }
+            },
+            "password": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "minLength": {
+                  "type": "number",
+                  "example": 8
+                },
+                "maxLength": {
+                  "type": "number",
+                  "example": 72
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "AuthUser": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "example": "object"
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                }
+              }
+            },
+            "name": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                }
+              }
+            },
+            "email": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "format": {
+                  "type": "string",
+                  "example": "email"
+                }
+              }
+            },
+            "role": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "enum": {
+                  "type": "array",
+                  "example": [
+                    "admin",
+                    "owner",
+                    "customer"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "LoginResponse": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "example": "object"
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "token": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                }
+              }
+            },
+            "tokenType": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "Bearer"
+                }
+              }
+            },
+            "expiresIn": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "2h"
+                }
+              }
+            },
+            "user": {
+              "$ref": "#/definitions/AuthUser"
+            }
+          }
+        }
+      }
+    },
+    "AuditInput": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "number",
+          "example": 2
+        },
+        "action": {
+          "type": "string",
+          "example": "UPDATE"
+        },
+        "targetTable": {
+          "type": "string",
+          "example": "REVIEWS"
+        },
+        "targetId": {
+          "type": "number",
+          "example": 7
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "field": {
+              "type": "string",
+              "example": "status"
+            },
+            "value": {
+              "type": "string",
+              "example": "resolved"
+            }
+          }
+        }
+      }
+    },
+    "FlagStatusUpdate": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "example": "resolved"
+        }
+      }
+    },
+    "LikeInput": {
+      "type": "object",
+      "properties": {
+        "reviewId": {
+          "type": "number",
+          "example": 1
+        },
+        "userId": {
+          "type": "number",
+          "example": 2
+        }
+      }
+    },
+    "ReviewInput": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "example": "object"
+        },
+        "required": {
+          "type": "array",
+          "example": [
+            "stallId",
+            "rating"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "stallId": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "example": {
+                  "type": "number",
+                  "example": 1
+                }
+              }
+            },
+            "rating": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "minimum": {
+                  "type": "number",
+                  "example": 1
+                },
+                "maximum": {
+                  "type": "number",
+                  "example": 5
+                },
+                "example": {
+                  "type": "number",
+                  "example": 5
+                }
+              }
+            },
+            "comment": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "maxLength": {
+                  "type": "number",
+                  "example": 1000
+                },
+                "example": {
+                  "type": "string",
+                  "example": "Makanannya enak"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "MenuItemInput": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "example": "object"
+        },
+        "required": {
+          "type": "array",
+          "example": [
+            "stallId",
+            "name",
+            "price"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "stallId": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "example": {
+                  "type": "number",
+                  "example": 1
+                }
+              }
+            },
+            "name": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "Nasi Goreng Spesial"
+                }
+              }
+            },
+            "price": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "minimum": {
+                  "type": "number",
+                  "example": 0
+                },
+                "example": {
+                  "type": "number",
+                  "example": 18000
+                }
+              }
+            },
+            "isAvailable": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "boolean"
+                },
+                "example": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "MenuItemUpdate": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "example": "object"
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "stallId": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "example": {
+                  "type": "number",
+                  "example": 1
+                }
+              }
+            },
+            "name": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "Nasi Goreng Spesial"
+                }
+              }
+            },
+            "price": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "minimum": {
+                  "type": "number",
+                  "example": 0
+                },
+                "example": {
+                  "type": "number",
+                  "example": 18000
+                }
+              }
+            },
+            "isAvailable": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "boolean"
+                },
+                "example": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "UserInput": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "example": "object"
+        },
+        "required": {
+          "type": "array",
+          "example": [
+            "name",
+            "email",
+            "password"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "Budi Santoso"
+                }
+              }
+            },
+            "email": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "format": {
+                  "type": "string",
+                  "example": "email"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "budi@example.com"
+                }
+              }
+            },
+            "password": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "password123"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "StallInput": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "example": "object"
+        },
+        "required": {
+          "type": "array",
+          "example": [
+            "name"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "Warung Baru"
+                }
+              }
+            },
+            "category": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "Nasi"
+                }
+              }
+            },
+            "location": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "Kantin FK"
+                }
+              }
+            },
+            "description": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
