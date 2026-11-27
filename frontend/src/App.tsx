@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, ChefHat, ChevronLeft, ChevronRight, LogIn, LogOut, Plus, Search, ShieldCheck, Sparkles, Trash2 } from 'lucide-react';
 import { AuthDialog } from './components/AuthDialog';
 import { ErrorNotice, LoadingState } from './components/Feedback';
 import { StallCard } from './components/StallCard';
 import { StallForm } from './components/StallForm';
 import { useAuth } from './context/AuthContext';
+import { AuditLogs } from './pages/AuditLogs';
 import { StallDetail } from './pages/StallDetail';
 import { ApiError } from './services/api';
 import { deleteStall, getStalls, createStall, updateStall } from './services/stallService';
@@ -20,6 +21,9 @@ function roleLabel(role: string): string {
 
 export default function App() {
   const { user, isLoading: authLoading, sessionError, login, register, logout } = useAuth();
+  const [showAuditLogs, setShowAuditLogs] = useState(false);
+  const auditToggleRef = useRef<HTMLButtonElement>(null);
+  const wasAuditPage = useRef(false);
   const [stallsResult, setStallsResult] = useState<StallListResponse | null>(null);
   const [stallsLoading, setStallsLoading] = useState(true);
   const [stallsError, setStallsError] = useState<ApiError | null>(null);
@@ -37,7 +41,21 @@ export default function App() {
 
   const canCreate = user?.role === 'admin' || user?.role === 'owner';
   const canDelete = user?.role === 'admin';
+  const isAuditPage = showAuditLogs && user?.role === 'admin';
   const totalPages = Math.max(1, Math.ceil((stallsResult?.meta.total ?? 0) / PAGE_SIZE));
+
+  useEffect(() => {
+    document.title = isAuditPage ? 'Audit log - Rasa Kantin' : 'Rasa Kantin — Jelajah warung kampus';
+  }, [isAuditPage]);
+
+  useEffect(() => {
+    if (!isAuditPage && wasAuditPage.current) auditToggleRef.current?.focus();
+    wasAuditPage.current = isAuditPage;
+  }, [isAuditPage]);
+
+  useEffect(() => {
+    if (user?.role !== 'admin') setShowAuditLogs(false);
+  }, [user?.role]);
 
   const canEditStall = useCallback((stall: Stall) => (
     user?.role === 'admin' || (user?.role === 'owner' && user.id === stall.ownerId)
@@ -151,6 +169,22 @@ export default function App() {
                   <small>{roleLabel(user.role)}</small>
                 </span>
               </div>
+              {user.role === 'admin' && (
+                <button
+                  ref={auditToggleRef}
+                  className="button button-quiet header-auth-button"
+                  type="button"
+                  onClick={() => {
+                    if (isAuditPage) setShowAuditLogs(false);
+                    else {
+                      setSelectedStallId(null);
+                      setShowAuditLogs(true);
+                    }
+                  }}
+                >
+                  {isAuditPage ? 'Kembali ke katalog' : 'Audit log'}
+                </button>
+              )}
               <button className="button button-quiet header-auth-button" type="button" onClick={logout}>
                 <LogOut size={16} aria-hidden="true" />
                 Keluar
@@ -178,7 +212,9 @@ export default function App() {
             onRetry={() => setRefreshKey((current) => current + 1)}
           />
         )}
-        {selectedStallId !== null ? (
+        {isAuditPage ? (
+          <AuditLogs onBack={() => setShowAuditLogs(false)} />
+        ) : selectedStallId !== null ? (
           <StallDetail
             stallId={selectedStallId}
             refreshKey={refreshKey}

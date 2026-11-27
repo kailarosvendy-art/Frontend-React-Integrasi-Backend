@@ -5,12 +5,20 @@ const doc = {
   servers: [{ url: 'http://localhost:3000' }],
   securityDefinitions: {
     bearerAuth: {
-      type: 'http',
-      scheme: 'bearer',
-      bearerFormat: 'JWT',
+      type: 'apiKey',
+      name: 'Authorization',
+      in: 'header',
+      description: 'Masukkan Bearer diikuti token JWT: Bearer <token>',
     },
   },
   definitions: {
+    OrderInput: {
+      customerName: 'Customer Demo',
+      phone: '081234567890',
+      paymentMethod: 'cash',
+      note: '',
+      items: [{ menuId: 1, quantity: 2 }],
+    },
     AuthInput: {
       type: 'object',
       required: ['email', 'password'],
@@ -46,12 +54,40 @@ const doc = {
         user: { $ref: '#/definitions/AuthUser' },
       },
     },
-    AuditInput: {
-      userId: 2,
-      action: 'UPDATE',
-      targetTable: 'REVIEWS',
-      targetId: 7,
-      metadata: { field: 'status', value: 'resolved' },
+    AuditLog: {
+      type: 'object',
+      properties: {
+        id: { type: 'integer', example: 21 },
+        userId: { type: 'integer', example: 1 },
+        userName: { type: 'string', example: 'Admin Kantin' },
+        userEmail: { type: 'string', format: 'email', example: 'admin@kantin.test' },
+        action: { type: 'string', example: 'LOGOUT' },
+        targetTable: { type: 'string', example: 'USERS' },
+        targetId: { type: 'integer', example: 1 },
+        metadata: {
+          oneOf: [
+            { type: 'object', additionalProperties: true },
+            { type: 'string' },
+            { type: 'null' },
+          ],
+        },
+        createdAt: { type: 'string', format: 'date-time' },
+      },
+    },
+    AuditLogList: {
+      type: 'object',
+      properties: {
+        items: { type: 'array', items: { $ref: '#/definitions/AuditLog' } },
+        pagination: {
+          type: 'object',
+          properties: {
+            page: { type: 'integer' },
+            pageSize: { type: 'integer' },
+            total: { type: 'integer' },
+            totalPages: { type: 'integer' },
+          },
+        },
+      },
     },
     FlagStatusUpdate: {
       status: 'resolved',
@@ -111,6 +147,6 @@ const doc = {
 };
 
 const outputFile = './swagger-output.json';
-const endpointsFiles = ['./src/index.ts'];
+const endpointsFiles = ['./src/app.ts'];
 
 swaggerAutogen()(outputFile, endpointsFiles, doc);

@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { getDb } from '../db/index.ts';
+import type { DbExecutor } from '../db/transaction.ts';
 import { reviews, users } from '../db/schema.ts';
 
 export interface CreateReviewInput {
@@ -32,8 +33,8 @@ export class ReviewRepository {
       .orderBy(reviews.id);
   }
 
-  async findById(id: number) {
-    const db = await getDb();
+  async findById(id: number, executor?: DbExecutor) {
+    const db = executor ?? await getDb();
     const rows = await db
       .select({
         id: reviews.id,
@@ -55,8 +56,8 @@ export class ReviewRepository {
     return rows[0];
   }
 
-  async create(input: CreateReviewInput) {
-    const db = await getDb();
+  async create(input: CreateReviewInput, executor?: DbExecutor) {
+    const db = executor ?? await getDb();
     const rows = await db
       .insert(reviews)
       .output()
@@ -68,13 +69,13 @@ export class ReviewRepository {
         likeCount: 0,
       });
     const id = rows[0]?.id;
-    return id === undefined ? undefined : this.findById(id);
+      return id === undefined ? undefined : this.findById(id, db);
   }
 
-  async remove(id: number) {
-    const existing = await this.findById(id);
+  async remove(id: number, executor?: DbExecutor) {
+    const existing = await this.findById(id, executor);
     if (!existing) return undefined;
-    const db = await getDb();
+    const db = executor ?? await getDb();
     const rows = await db.delete(reviews).where(eq(reviews.id, id)).output();
     return rows[0] ? existing : undefined;
   }

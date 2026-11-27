@@ -24,3 +24,7 @@ export async function getCurrentUser(): Promise<User> {
   const response = await apiRequest<ApiEnvelope<User>>('/auth/me');
   return response.data;
 }
+
+export async function logout(): Promise<void> {
+  await apiRequest<ApiEnvelope<unknown>>('/auth/logout', { method: 'POST' });
+}

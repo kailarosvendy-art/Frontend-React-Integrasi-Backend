@@ -72,3 +72,28 @@ export const auditLogs = mssqlTable('AUDIT_LOGS', {
   metadata: nvarchar('metadata', { length: 'max' }),
   createdAt: datetime2('created_at'),
 });
+
+export const orders = mssqlTable('ORDERS', {
+  id: int('id').primaryKey().identity(),
+  orderCode: nvarchar('order_code', { length: 30 }).notNull().unique(),
+  customerId: int('customer_id').notNull().references(() => users.id),
+  customerName: nvarchar('customer_name', { length: 80 }).notNull(),
+  phone: nvarchar('phone', { length: 20 }).notNull(),
+  paymentMethod: nvarchar('payment_method', { length: 20 }).notNull(),
+  note: nvarchar('note', { length: 200 }),
+  total: int('total').notNull(),
+  status: nvarchar('status', { length: 20, enum: ['confirmed', 'completed', 'cancelled'] }).notNull(),
+  createdAt: datetime2('created_at'),
+});
+
+export const orderItems = mssqlTable('ORDER_ITEMS', {
+  id: int('id').primaryKey().identity(),
+  orderId: int('order_id').notNull().references(() => orders.id),
+  menuId: int('menu_id').references(() => menuItems.id),
+  stallId: int('stall_id'),
+  stallName: nvarchar('stall_name', { length: 100 }),
+  menuName: nvarchar('menu_name', { length: 100 }).notNull(),
+  unitPrice: int('unit_price').notNull(),
+  quantity: int('quantity').notNull(),
+  subtotal: int('subtotal').notNull(),
+});

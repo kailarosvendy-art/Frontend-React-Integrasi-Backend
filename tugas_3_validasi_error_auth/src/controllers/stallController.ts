@@ -99,7 +99,7 @@ export class StallController {
 
   deleteStall = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const stall = await this.stallService.deleteStall(Number(req.params.id));
+      const stall = await this.stallService.deleteStall(Number(req.params.id), getAuthUser(res));
       return res.status(200).json({ status: 'success', data: stall });
     } catch (error) {
       return this.handleError(res, error);

@@ -1,0 +1,8 @@
+.playwright-cli/
+*-git-backup/
+tmp/
+**/node_modules/
+**/dist/
+**/.env
+**/.env.example
+/output/

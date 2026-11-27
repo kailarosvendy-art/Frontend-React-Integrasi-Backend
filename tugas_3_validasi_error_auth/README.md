@@ -1,9 +1,20 @@
-# Hands-on 2 — Akses Database dengan Drizzle ORM
+# Backend Tugas 5 - Audit Log
+
+Panduan penyesuaian SQL, penggunaan akun lama, endpoint menu/order, pengujian,
+dan bahan laporan tersedia di [README utama](../README.md). Folder SQL lengkap
+ada di [../db](../db). Bagian di bawah mempertahankan materi awal proyek.
+
+Mutasi warung, menu, review, dan pesanan memakai autentikasi/otorisasi, validasi
+Zod, serta transaksi bersama audit. Error validasi memakai field dan message.
+Jalankan `npm.cmd run typecheck`, `npm.cmd test`, serta `npm.cmd run verify:t5`
+dengan DB_NAME=review_kantin. Pengujian memakai akun yang sudah ada tanpa membuat data tambahan.
+
+## Referensi awal: akses database dengan Drizzle ORM
 
 Hands-on ini mengganti akses data dari query SQL manual menjadi **ORM (Drizzle)**,
 tetap memakai arsitektur berlapis (Repository → Service → Controller → Router).
 
-> File ini adalah sumber langkah utama.
+> Untuk Tugas 5, gunakan README utama sebagai sumber langkah instalasi.
 
 ## Prinsip
 
@@ -18,10 +29,9 @@ tetap memakai arsitektur berlapis (Repository → Service → Controller → Rou
 - SQL Server aktif + database sudah disiapkan:
 
 ```powershell
-sqlcmd -S localhost -E -C -i ..\db\00-setup-mixed-mode.sql       # sekali saja
-sqlcmd -S localhost -E -C -i ..\db\01-create-database-and-user.sql
-sqlcmd -S localhost -E -C -i ..\db\02-schema.sql
-sqlcmd -S localhost -E -C -i ..\db\03-seed.sql
+sqlcmd -S localhost -E -C -d review_kantin -b -i ..\db\03-audit-schema.sql
+sqlcmd -S localhost -E -C -d review_kantin -b -i ..\db\04-audit-append-only.sql
+sqlcmd -S localhost -E -C -d review_kantin -b -i ..\db\05-permissions.sql
 ```
 
 ---
@@ -174,6 +184,9 @@ API berikut memakai prefix `/api/v1`:
 | `POST` | `/auth/register` | Public; akun baru selalu ber-role `customer` |
 | `POST` | `/auth/login` | Public; mengembalikan JWT Bearer berlaku 2 jam |
 | `GET` | `/auth/me` | Semua role; memerlukan JWT |
+| `POST` | `/auth/logout` | Semua role; memerlukan JWT; pencatatan audit best-effort |
+| `GET` | `/audit-logs` | `admin`; filter audit dan pagination |
+| `GET` | `/audit-logs/:id` | `admin`; detail audit |
 | `GET` | `/stalls`, `/stalls/:id` | Public |
 | `POST` | `/stalls` | `owner`, `admin`; owner ditentukan dari token |
 | `PUT` | `/stalls/:id` | `admin`, atau owner warung tersebut |
@@ -183,7 +196,22 @@ API berikut memakai prefix `/api/v1`:
 
 Request body divalidasi dengan Zod. Error validasi memakai respons `400` dengan `status`, `message`, dan `errors`. Endpoint terlindungi merespons `401` bila token tidak valid dan `403` bila role tidak berwenang. Hash password baru memakai bcrypt; hash legacy `scrypt` yang telah tersimpan masih didukung saat login.
 
-Role owner dan admin tidak bisa dipilih saat registrasi. Gunakan akun role yang memang disediakan seed database untuk menguji tampilan owner/admin. Jika memakai seed password Tugas 5, jalankan `pertemuan-05-auth-middleware/db/seed-password-hashes.sql`; skrip tersebut mengatur password akun contoh menjadi `rahasia123`.
+Audit LOGIN/LOGOUT menyimpan `role`, `ip_address`, `user_agent`, dan `result` sebagai metadata JSON; kegagalan menyimpan audit autentikasi tidak membatalkan login/logout. User ID dan target ID LOGIN/LOGOUT selalu diambil backend dari pengguna yang terautentikasi. Pencatatan hanya dapat dibuat oleh backend, dan endpoint baca hanya untuk admin. Jalankan trigger append-only SQL Server setelah skema dibuat:
+
+```powershell
+sqlcmd -S localhost -E -C -d review_kantin -i src\db\04-audit-logs-append-only.sql
+```
+
+Daftar audit menerima `page` (default 1), `pageSize` (default 20, maksimum 100), `action`, `targetTable`, `targetId`, `userId`, `from`, dan `to` (`YYYY-MM-DD`). Filter digabung dengan AND; rentang tanggal inklusif; hasil diurutkan terbaru lebih dahulu. URL versi proyek tetap tersedia di `/api/v1/audit-logs`, dan URL sesuai lembar tugas tersedia di `/api/audit-logs`.
+
+Contoh cek API setelah server dan SQL Server aktif:
+
+```powershell
+curl.exe -H "Authorization: Bearer <TOKEN_ADMIN>" "http://localhost:3000/api/audit-logs?userId=1&targetId=1"
+curl.exe -H "Authorization: Bearer <TOKEN_ADMIN>" "http://localhost:3000/api/audit-logs/1"
+```
+
+Role owner dan admin tidak bisa dipilih saat registrasi. Gunakan Admin Kantin, owner warung, dan customer yang sudah ada dengan password masing-masing. Tidak ada seed akun tambahan.
 
 Frontend Vite dapat memakai proxy `/api` sehingga development tidak memerlukan CORS lintas origin. Jika frontend diakses langsung dari origin lain, tambahkan origin tersebut ke `FRONTEND_ORIGINS`.
 
@@ -295,7 +323,7 @@ lewat komentar singkat `#swagger.*` di dalam handler. Hasilnya disajikan lewat
 
 Alur:
 
-1. `npm run docs:gen` — memindai `src/index.ts` (beserta router yang diimpor) dan
+1. `npm run docs:gen` — memindai `src/app.ts` (beserta router yang diimpor) dan
    menghasilkan `src/docs/swagger-output.json`.
 2. `npm run dev` — menyajikan spec tersebut di `/docs`.
    (`predev`/`prestart` otomatis menjalankan `docs:gen` sebelum server start.)
@@ -322,7 +350,7 @@ stallRouter.post('/', (req, res) => {
 
 File terkait:
 
-- `src/docs/swagger.ts` — definisi `info`, `servers`, `definitions.StallInput`, lalu `swaggerAutogen()(outputFile, endpointsFiles, doc)`.
+- `src/docs/swagger.ts` — definisi `info`, `servers`, schema, lalu memindai `src/app.ts` dengan `swaggerAutogen()(outputFile, endpointsFiles, doc)`.
 - `src/docs/swagger-output.json` — **hasil generate** (di-`.gitignore`, jangan diedit manual).
 - `src/routes/stallRouter.ts` — handler inline + `#swagger.parameters`/`#swagger.responses`.
 - `src/index.ts` — `app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));`

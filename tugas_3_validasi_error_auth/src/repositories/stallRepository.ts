@@ -1,5 +1,6 @@
 import { and, count, eq, like, type SQL } from 'drizzle-orm';
 import { getDb } from '../db/index.ts';
+import type { DbExecutor } from '../db/transaction.ts';
 import { stalls } from '../db/schema.ts';
 
 export interface FindAllParams {
@@ -42,14 +43,14 @@ export class StallRepository {
     return { rows, total: Number(totals[0]?.total ?? 0) };
   }
 
-  async findById(id: number) {
-    const db = await getDb();
+  async findById(id: number, executor?: DbExecutor) {
+    const db = executor ?? await getDb();
     const rows = await db.select().from(stalls).where(eq(stalls.id, id));
     return rows[0];
   }
 
-  async create(input: CreateStallInput) {
-    const db = await getDb();
+  async create(input: CreateStallInput, executor?: DbExecutor) {
+    const db = executor ?? await getDb();
     const rows = await db
       .insert(stalls)
       .output()
@@ -65,8 +66,8 @@ export class StallRepository {
     return rows[0];
   }
 
-  async update(id: number, input: Partial<Omit<CreateStallInput, 'ownerId'>>) {
-    const db = await getDb();
+  async update(id: number, input: Partial<Omit<CreateStallInput, 'ownerId'>>, executor?: DbExecutor) {
+    const db = executor ?? await getDb();
     const rows = await db
       .update(stalls)
       .set({
@@ -80,8 +81,8 @@ export class StallRepository {
     return rows[0];
   }
 
-  async remove(id: number) {
-    const db = await getDb();
+  async remove(id: number, executor?: DbExecutor) {
+    const db = executor ?? await getDb();
     const rows = await db.delete(stalls).where(eq(stalls.id, id)).output();
     return rows[0];
   }

@@ -24,6 +24,11 @@ export class AuthService {
     return { id: row.id, name: row.name, email: row.email, role: row.role };
   }
 
+  async findUserForLoginAudit(email: string): Promise<AuthUser | null> {
+    const row = await this.userRepository.findByEmail(email);
+    return row ? this.toUser(row) : null;
+  }
+
   async register(input: RegisterInput): Promise<AuthUser> {
     if (await this.userRepository.findByEmail(input.email)) {
       throw new AppError(409, 'Email sudah terdaftar');

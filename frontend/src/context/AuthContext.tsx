@@ -17,7 +17,7 @@ interface AuthContextValue {
   sessionError: string | null;
   login: (input: LoginInput) => Promise<void>;
   register: (input: RegisterInput) => Promise<User>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -69,10 +69,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback((input: RegisterInput) => authService.register(input), []);
 
-  const logout = useCallback(() => {
-    clearAuthToken();
-    setUser(null);
-    setSessionError(null);
+  const logout = useCallback(async () => {
+    try {
+      if (getAuthToken()) await authService.logout();
+    } catch (error) {
+      console.error('Logout request failed; clearing the local session:', error);
+    } finally {
+      clearAuthToken();
+      setUser(null);
+      setSessionError(null);
+    }
   }, []);
 
   const value = useMemo(

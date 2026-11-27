@@ -17,9 +17,10 @@
   ],
   "securityDefinitions": {
     "bearerAuth": {
-      "type": "http",
-      "scheme": "bearer",
-      "bearerFormat": "JWT"
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Masukkan Bearer diikuti token JWT: Bearer <token>"
     }
   },
   "paths": {
@@ -124,6 +125,30 @@
         ]
       }
     },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Logout berhasil; audit dicatat best-effort"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/api/v1/stalls/": {
       "get": {
         "description": "",
@@ -175,7 +200,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Warung dibuat"
+            "description": "Warung dibuat dan audit tercatat"
           },
           "204": {
             "description": "No Content"
@@ -243,7 +268,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Warung ter-update"
+            "description": "Warung diubah dan audit tercatat"
           },
           "204": {
             "description": "No Content"
@@ -279,7 +304,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Warung terhapus"
+            "description": "Warung dihapus dan audit tercatat"
           },
           "204": {
             "description": "No Content"
@@ -404,8 +429,22 @@
           },
           "204": {
             "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/v1/menu-items/{id}": {
@@ -425,6 +464,9 @@
           },
           "204": {
             "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
           },
           "404": {
             "description": "Menu tidak ditemukan"
@@ -456,10 +498,24 @@
           "204": {
             "description": "No Content"
           },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "404": {
             "description": "Menu atau warung tidak ditemukan"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "delete": {
         "description": "",
@@ -478,10 +534,170 @@
           "204": {
             "description": "No Content"
           },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
           "404": {
             "description": "Menu tidak ditemukan"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/orders/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Daftar pesanan; customer hanya melihat pesanan sendiri"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/OrderInput"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Pesanan dan audit tersimpan dalam satu transaksi"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/orders/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail pesanan dan snapshot item"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/orders/{id}/status": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "completed"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status dan audit diperbarui dalam satu transaksi"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "409": {
+            "description": "Status pesanan sudah final"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/v1/reviews/": {
@@ -510,7 +726,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Review berhasil dibuat beserta data user"
+            "description": "Review dibuat dan audit tercatat"
           },
           "204": {
             "description": "No Content"
@@ -540,7 +756,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Review berhasil dihapus"
+            "description": "Review dihapus dan audit tercatat"
           },
           "204": {
             "description": "No Content"
@@ -655,48 +871,357 @@
     "/api/v1/audit/": {
       "get": {
         "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "integer",
+            "default": 1
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "type": "integer",
+            "default": 20
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "targetTable",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "targetId",
+            "in": "query",
+            "type": "integer"
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "type": "integer"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "type": "string",
+            "format": "date"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Daftar audit beserta identitas user"
+            "description": "Daftar audit dengan pagination"
           },
           "204": {
             "description": "No Content"
+          },
+          "400": {
+            "description": "Parameter filter tidak valid"
           },
           "401": {
             "description": "Unauthorized"
           }
-        }
-      },
-      "post": {
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/audit/{id}": {
+      "get": {
         "description": "",
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
+            "name": "id",
+            "in": "path",
             "required": true,
-            "schema": {
-              "$ref": "#/definitions/AuditInput"
-            }
+            "type": "integer"
           }
         ],
         "responses": {
-          "201": {
-            "description": "Audit log berhasil dibuat"
+          "200": {
+            "description": "Detail audit log"
           },
           "204": {
             "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
           },
           "401": {
             "description": "Unauthorized"
           },
           "404": {
-            "description": "User tidak ditemukan"
+            "description": "Catatan audit tidak ditemukan"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/audit-logs/": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "integer",
+            "default": 1
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "type": "integer",
+            "default": 20
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "targetTable",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "targetId",
+            "in": "query",
+            "type": "integer"
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "type": "integer"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "type": "string",
+            "format": "date"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar audit dengan pagination"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Parameter filter tidak valid"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/audit-logs/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail audit log"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Catatan audit tidak ditemukan"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/audit-logs/": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "integer",
+            "default": 1
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "type": "integer",
+            "default": 20
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "targetTable",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "targetId",
+            "in": "query",
+            "type": "integer"
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "type": "integer"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "type": "string",
+            "format": "date"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daftar audit dengan pagination"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Parameter filter tidak valid"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/audit-logs/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detail audit log"
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Catatan audit tidak ditemukan"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     }
   },
   "definitions": {
+    "OrderInput": {
+      "type": "object",
+      "properties": {
+        "customerName": {
+          "type": "string",
+          "example": "Customer Demo"
+        },
+        "phone": {
+          "type": "string",
+          "example": "081234567890"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "example": "cash"
+        },
+        "note": {
+          "type": "string",
+          "example": ""
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "menuId": {
+                "type": "number",
+                "example": 1
+              },
+              "quantity": {
+                "type": "number",
+                "example": 2
+              }
+            }
+          }
+        }
+      }
+    },
     "AuthInput": {
       "type": "object",
       "properties": {
@@ -948,35 +1473,216 @@
         }
       }
     },
-    "AuditInput": {
+    "AuditLog": {
       "type": "object",
       "properties": {
-        "userId": {
-          "type": "number",
-          "example": 2
-        },
-        "action": {
+        "type": {
           "type": "string",
-          "example": "UPDATE"
+          "example": "object"
         },
-        "targetTable": {
-          "type": "string",
-          "example": "REVIEWS"
-        },
-        "targetId": {
-          "type": "number",
-          "example": 7
-        },
-        "metadata": {
+        "properties": {
           "type": "object",
           "properties": {
-            "field": {
-              "type": "string",
-              "example": "status"
+            "id": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "example": {
+                  "type": "number",
+                  "example": 21
+                }
+              }
             },
-            "value": {
-              "type": "string",
-              "example": "resolved"
+            "userId": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "example": {
+                  "type": "number",
+                  "example": 1
+                }
+              }
+            },
+            "userName": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "Admin Kantin"
+                }
+              }
+            },
+            "userEmail": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "format": {
+                  "type": "string",
+                  "example": "email"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "admin@kantin.test"
+                }
+              }
+            },
+            "action": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "LOGOUT"
+                }
+              }
+            },
+            "targetTable": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "example": {
+                  "type": "string",
+                  "example": "USERS"
+                }
+              }
+            },
+            "targetId": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "integer"
+                },
+                "example": {
+                  "type": "number",
+                  "example": 1
+                }
+              }
+            },
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "oneOf": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "example": "null"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "createdAt": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                },
+                "format": {
+                  "type": "string",
+                  "example": "date-time"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "AuditLogList": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "example": "object"
+        },
+        "properties": {
+          "type": "object",
+          "properties": {
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "array"
+                },
+                "items": {
+                  "$ref": "#/definitions/AuditLog"
+                }
+              }
+            },
+            "pagination": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "object"
+                },
+                "properties": {
+                  "type": "object",
+                  "properties": {
+                    "page": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "example": "integer"
+                        }
+                      }
+                    },
+                    "pageSize": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "example": "integer"
+                        }
+                      }
+                    },
+                    "total": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "example": "integer"
+                        }
+                      }
+                    },
+                    "totalPages": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "example": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }

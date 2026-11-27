@@ -10,7 +10,9 @@
     "dev": "tsx watch src/index.ts",
     "predev": "npm run docs:gen",
     "test": "node --import tsx --test",
-    "docs:gen": "tsx src/docs/swagger.ts"
+    "docs:gen": "tsx src/docs/swagger.ts",
+    "typecheck": "tsc --noEmit",
+    "verify:t5": "tsx scripts/verify-t5.ts"
   },
   "type": "commonjs",
   "dependencies": {

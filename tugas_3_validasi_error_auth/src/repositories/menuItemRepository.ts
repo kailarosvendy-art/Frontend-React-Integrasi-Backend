@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { getDb } from '../db/index.ts';
+import type { DbExecutor } from '../db/transaction.ts';
 import { menuItems, stalls } from '../db/schema.ts';
 
 export interface MenuItemInput {
@@ -33,8 +34,8 @@ export class MenuItemRepository {
       .orderBy(menuItems.id);
   }
 
-  async findById(id: number) {
-    const db = await getDb();
+  async findById(id: number, executor?: DbExecutor) {
+    const db = executor ?? await getDb();
     const rows = await db
       .select({
         menu: {
@@ -62,8 +63,8 @@ export class MenuItemRepository {
     return db.select().from(menuItems).where(eq(menuItems.stallId, stallId));
   }
 
-  async create(input: MenuItemInput) {
-    const db = await getDb();
+  async create(input: MenuItemInput, executor?: DbExecutor) {
+    const db = executor ?? await getDb();
     const rows = await db
       .insert(menuItems)
       .output()
@@ -74,11 +75,11 @@ export class MenuItemRepository {
         isAvailable: input.isAvailable ?? true,
       });
     const id = rows[0]?.id;
-    return id === undefined ? undefined : this.findById(id);
+    return id === undefined ? undefined : this.findById(id, db);
   }
 
-  async update(id: number, input: Partial<MenuItemInput>) {
-    const db = await getDb();
+  async update(id: number, input: Partial<MenuItemInput>, executor?: DbExecutor) {
+    const db = executor ?? await getDb();
     const rows = await db
       .update(menuItems)
       .set({
@@ -89,13 +90,13 @@ export class MenuItemRepository {
       })
       .where(eq(menuItems.id, id))
       .output();
-    return rows[0] ? this.findById(id) : undefined;
+    return rows[0] ? this.findById(id, db) : undefined;
   }
 
-  async remove(id: number) {
-    const existing = await this.findById(id);
+  async remove(id: number, executor?: DbExecutor) {
+    const db = executor ?? await getDb();
+    const existing = await this.findById(id, db);
     if (!existing) return undefined;
-    const db = await getDb();
     const rows = await db.delete(menuItems).where(eq(menuItems.id, id)).output();
     return rows[0] ? existing : undefined;
   }

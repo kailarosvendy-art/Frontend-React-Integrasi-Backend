@@ -14,14 +14,14 @@ reviewRouter.get('/', (_req, res) => {
 
 reviewRouter.post('/', authenticate, validateRequest(createReviewSchema, 'body'), (req, res) => {
   // #swagger.parameters['body'] = { in: 'body', required: true, schema: { $ref: '#/definitions/ReviewInput' } }
-  // #swagger.responses[201] = { description: 'Review berhasil dibuat beserta data user' }
+  // #swagger.responses[201] = { description: 'Review dibuat dan audit tercatat' }
   // #swagger.responses[409] = { description: 'User sudah memberi review untuk warung ini' }
   return reviewController.createReview(req, res);
 });
 
 reviewRouter.delete('/:id', authenticate, authorize('admin'), (req, res) => {
   // #swagger.parameters['id'] = { in: 'path', required: true, type: 'integer' }
-  // #swagger.responses[200] = { description: 'Review berhasil dihapus' }
+  // #swagger.responses[200] = { description: 'Review dihapus dan audit tercatat' }
   // #swagger.responses[404] = { description: 'Review tidak ditemukan' }
   return reviewController.deleteReview(req, res);
 });
