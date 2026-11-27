@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { login, me, register } from '../controllers/authController.ts';
+import { login, logout, me, register } from '../controllers/authController.ts';
 import { authenticate } from '../middlewares/auth.ts';
 import { validateRequest } from '../middlewares/validateRequest.ts';
 import { loginSchema, registerSchema } from '../schemas/authSchema.ts';
@@ -26,5 +26,11 @@ authRouter.get('/me', authenticate, (req, res, next) => {
   // #swagger.responses[200] = { description: 'Informasi pengguna aktif' }
   return next();
 }, me);
+authRouter.post('/logout', authenticate, (req, res, next) => {
+  // #swagger.tags = ['Auth']
+  // #swagger.security = [{ bearerAuth: [] }]
+  // #swagger.responses[200] = { description: 'Logout berhasil; audit dicatat best-effort' }
+  return next();
+}, logout);
 
 export { authRouter };

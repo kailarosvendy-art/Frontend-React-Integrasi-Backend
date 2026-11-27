@@ -6,6 +6,8 @@ import {
 import { MenuItemRepository } from '../repositories/menuItemRepository.ts';
 import type { MenuItemDto, StallResponseDto } from '../dtos/stallDto.ts';
 import { AppError } from '../errors/AppError.ts';
+import { withTransaction } from '../db/transaction.ts';
+import { AuditService } from './auditService.ts';
 import type { AuthUser } from './tokenService.ts';
 
 type StallRow = NonNullable<Awaited<ReturnType<StallRepository['findById']>>>;
@@ -13,13 +15,19 @@ type StallRow = NonNullable<Awaited<ReturnType<StallRepository['findById']>>>;
 export class StallService {
   private stallRepository: StallRepository;
   private menuItemRepository: MenuItemRepository;
+  private auditService: AuditService;
+  private runInTransaction: typeof withTransaction;
 
   constructor(
     stallRepository: StallRepository = new StallRepository(),
     menuItemRepository: MenuItemRepository = new MenuItemRepository(),
+    auditService: AuditService = new AuditService(),
+    runInTransaction: typeof withTransaction = withTransaction,
   ) {
     this.stallRepository = stallRepository;
     this.menuItemRepository = menuItemRepository;
+    this.auditService = auditService;
+    this.runInTransaction = runInTransaction;
   }
 
   // Mapping row DB -> DTO API (sekaligus logika bisnis isPopular).
@@ -59,9 +67,18 @@ export class StallService {
     input: Omit<CreateStallInput, 'ownerId'>,
     ownerId: number,
   ): Promise<StallResponseDto> {
-    const row = await this.stallRepository.create({ ...input, ownerId });
-    if (!row) throw new Error('STALL_NOT_FOUND');
-    return this.toDto(row);
+    return this.runInTransaction(async (tx) => {
+      const row = await this.stallRepository.create({ ...input, ownerId }, tx);
+      if (!row) throw new Error('STALL_NOT_FOUND');
+      await this.auditService.recordMutation({
+        userId: ownerId,
+        action: 'CREATE_STALL',
+        targetTable: 'STALLS',
+        targetId: row.id,
+        metadata: JSON.stringify({ fields: Object.keys(input) }),
+      }, tx);
+      return this.toDto(row);
+    });
   }
 
   async updateStall(
@@ -69,20 +86,38 @@ export class StallService {
     input: Partial<Omit<CreateStallInput, 'ownerId'>>,
     user: AuthUser,
   ): Promise<StallResponseDto> {
-    const current = await this.stallRepository.findById(id);
-    if (!current) throw new AppError(404, 'Data warung tidak ditemukan');
-    if (user.role !== 'admin' && current.ownerId !== user.id) {
-      throw new AppError(403, 'Kamu hanya bisa mengubah warung milikmu sendiri');
-    }
+    return this.runInTransaction(async (tx) => {
+      const current = await this.stallRepository.findById(id, tx);
+      if (!current) throw new AppError(404, 'Data warung tidak ditemukan');
+      if (user.role !== 'admin' && current.ownerId !== user.id) {
+        throw new AppError(403, 'Kamu hanya bisa mengubah warung milikmu sendiri');
+      }
 
-    const row = await this.stallRepository.update(id, input);
-    if (!row) throw new Error('STALL_NOT_FOUND');
-    return this.toDto(row);
+      const row = await this.stallRepository.update(id, input, tx);
+      if (!row) throw new Error('STALL_NOT_FOUND');
+      await this.auditService.recordMutation({
+        userId: user.id,
+        action: 'UPDATE_STALL',
+        targetTable: 'STALLS',
+        targetId: id,
+        metadata: JSON.stringify({ changedFields: Object.keys(input) }),
+      }, tx);
+      return this.toDto(row);
+    });
   }
 
-  async deleteStall(id: number): Promise<StallResponseDto> {
-    const row = await this.stallRepository.remove(id);
-    if (!row) throw new Error('STALL_NOT_FOUND');
-    return this.toDto(row);
+  async deleteStall(id: number, user: AuthUser): Promise<StallResponseDto> {
+    return this.runInTransaction(async (tx) => {
+      const row = await this.stallRepository.remove(id, tx);
+      if (!row) throw new Error('STALL_NOT_FOUND');
+      await this.auditService.recordMutation({
+        userId: user.id,
+        action: 'DELETE_STALL',
+        targetTable: 'STALLS',
+        targetId: id,
+        metadata: JSON.stringify({ changedFields: ['deleted'] }),
+      }, tx);
+      return this.toDto(row);
+    });
   }
 }

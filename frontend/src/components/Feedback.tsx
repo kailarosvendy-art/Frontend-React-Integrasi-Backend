@@ -8,9 +8,9 @@ function getValidationMessages(errors: unknown): string[] {
     if (typeof item === 'string') return [item];
     if (typeof item !== 'object' || item === null || !('message' in item)) return [];
 
-    const issue = item as { message?: unknown; path?: unknown };
+    const issue = item as { message?: unknown; field?: unknown; path?: unknown };
     if (typeof issue.message !== 'string') return [];
-    const path = Array.isArray(issue.path)
+    const path = typeof issue.field === 'string' ? issue.field : Array.isArray(issue.path)
       ? issue.path.join('.')
       : typeof issue.path === 'string'
         ? issue.path

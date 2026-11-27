@@ -29,7 +29,7 @@ stallRouter.post(
   (req, res) => {
     // #swagger.security = [{ bearerAuth: [] }]
     // #swagger.parameters['body'] = { in: 'body', required: true, schema: { $ref: '#/definitions/StallInput' } }
-    // #swagger.responses[201] = { description: 'Warung dibuat' }
+    // #swagger.responses[201] = { description: 'Warung dibuat dan audit tercatat' }
     return stallController.createStall(req, res);
   },
 );
@@ -51,7 +51,7 @@ stallRouter.put(
     // #swagger.security = [{ bearerAuth: [] }]
     // #swagger.parameters['id'] = { in: 'path', required: true, type: 'integer' }
     // #swagger.parameters['body'] = { in: 'body', required: true, schema: { $ref: '#/definitions/StallInput' } }
-    // #swagger.responses[200] = { description: 'Warung ter-update' }
+    // #swagger.responses[200] = { description: 'Warung diubah dan audit tercatat' }
     // #swagger.responses[404] = { description: 'Tidak ditemukan' }
     return stallController.updateStall(req, res);
   },
@@ -65,7 +65,7 @@ stallRouter.delete(
   (req, res) => {
     // #swagger.security = [{ bearerAuth: [] }]
     // #swagger.parameters['id'] = { in: 'path', required: true, type: 'integer' }
-    // #swagger.responses[200] = { description: 'Warung terhapus' }
+    // #swagger.responses[200] = { description: 'Warung dihapus dan audit tercatat' }
     // #swagger.responses[404] = { description: 'Tidak ditemukan' }
     return stallController.deleteStall(req, res);
   },

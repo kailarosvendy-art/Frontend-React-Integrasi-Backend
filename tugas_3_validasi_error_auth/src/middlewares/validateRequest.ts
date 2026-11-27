@@ -11,7 +11,7 @@ export function validateRequest(schema: ZodType, source: RequestSource): Request
         status: 'fail',
         message: 'Validasi request gagal',
         errors: result.error.issues.map((issue) => ({
-          path: issue.path.join('.'),
+          field: issue.path.join('.') || source,
           message: issue.message,
         })),
       });

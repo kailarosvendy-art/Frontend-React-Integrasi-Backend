@@ -35,3 +35,9 @@ export function getDb() {
   }
   return dbPromise;
 }
+
+export async function closeDb(): Promise<void> {
+  if (poolPromise) await (await poolPromise).close();
+  poolPromise = null;
+  dbPromise = null;
+}

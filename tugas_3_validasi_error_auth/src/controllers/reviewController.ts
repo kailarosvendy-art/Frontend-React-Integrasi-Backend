@@ -66,7 +66,7 @@ export class ReviewController {
     const id = Number(req.params.id);
     if (!Number.isInteger(id) || id <= 0) throw new AppError(400, 'id harus berupa bilangan bulat positif');
     try {
-      const review = await this.reviewService.deleteReview(id);
+      const review = await this.reviewService.deleteReview(id, getAuthUser(res));
       return res.status(200).json({ status: 'success', data: review });
     } catch (error) {
       return this.handleError(res, error);

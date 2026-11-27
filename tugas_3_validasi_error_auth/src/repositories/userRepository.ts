@@ -1,5 +1,6 @@
 import { getDb } from '../db/index.ts';
 import { eq } from 'drizzle-orm';
+import type { DbExecutor } from '../db/transaction.ts';
 import { users } from '../db/schema.ts';
 
 export interface CreateUserInput {
@@ -17,8 +18,8 @@ export interface AuthUserRecord {
 }
 
 export class UserRepository {
-  async findById(id: number) {
-    const db = await getDb();
+  async findById(id: number, executor?: DbExecutor) {
+    const db = executor ?? await getDb();
     const rows = await db
       .select({ id: users.id, name: users.name })
       .from(users)
